@@ -26,6 +26,18 @@ export default function SubscriptionPlans() {
     }
     setCheckoutLoading(true);
     try {
+      const { data: activeSubs, error: activeError } = await fetch(`/api/active-subscription?userId=${user.id}`)
+        .then(res => res.json());
+      if (activeError) {
+        setError(activeError);
+        setCheckoutLoading(false);
+        return;
+      }
+      if (activeSubs && activeSubs.length > 0) {
+        setError("You already have an active subscription. Please cancel it before purchasing a new one.");
+        setCheckoutLoading(false);
+        return;
+      }
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
