@@ -2,6 +2,7 @@
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import Profile from "./profile";
 import SubscriptionPlans from "./SubscriptionPlans";
+import MySubscriptions from "./MySubscriptions";
 
 export default function DashboardPage() {
   return (
@@ -13,6 +14,7 @@ export default function DashboardPage() {
         </main>
         <Profile />
         <SubscriptionPlans />
+        <MySubscriptions />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
