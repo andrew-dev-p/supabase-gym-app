@@ -22,6 +22,56 @@ export default function AdminDashboard() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancelLoading, setCancelLoading] = useState<string | null>(null);
+
+  const handleAdminCancel = async (userId: string, plan: string) => {
+    setCancelLoading(userId + plan);
+    setError(null);
+    try {
+      const res = await fetch("/api/cancel-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, plan }),
+      });
+      const data = await res.json();
+      if (data.error) setError(data.error);
+      else {
+        setLoading(true);
+        supabase
+          .from("subscriptions")
+          .select("id, user_id, plan, status, start_date, end_date, profiles(full_name, email)")
+          .order("start_date", { ascending: false })
+          .then(({ data, error }) => {
+            if (error) setError(error.message);
+            else {
+              const fixed: Subscription[] = (data || []).map((sub: unknown) => {
+                if (
+                  typeof sub === "object" &&
+                  sub !== null &&
+                  "profiles" in sub &&
+                  Array.isArray((sub as { profiles: unknown }).profiles)
+                ) {
+                  return {
+                    ...(sub as object),
+                    profiles: (sub as { profiles: unknown[] }).profiles[0] as { full_name: string | null; email: string | null },
+                  } as Subscription;
+                }
+                return sub as Subscription;
+              });
+              setSubs(fixed);
+            }
+            setLoading(false);
+          });
+      }
+    } catch (err: unknown) {
+      if (typeof err === "object" && err && "message" in err) {
+        setError((err as { message: string }).message);
+      } else {
+        setError("Failed to cancel subscription.");
+      }
+    }
+    setCancelLoading(null);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -97,7 +147,17 @@ export default function AdminDashboard() {
                 <td className="border px-2 py-1">{sub.profiles?.full_name || "-"}</td>
                 <td className="border px-2 py-1">{sub.profiles?.email || "-"}</td>
                 <td className="border px-2 py-1">{sub.plan}</td>
-                <td className="border px-2 py-1 capitalize">{sub.status}</td>
+                <td className="border px-2 py-1 capitalize">{sub.status}
+                  {sub.status === "active" && (
+                    <button
+                      className="ml-2 text-xs text-red-600 underline"
+                      disabled={!!cancelLoading}
+                      onClick={() => handleAdminCancel(sub.user_id, sub.plan)}
+                    >
+                      {cancelLoading === sub.user_id + sub.plan ? "Canceling..." : "Cancel"}
+                    </button>
+                  )}
+                </td>
                 <td className="border px-2 py-1">{sub.start_date ? new Date(sub.start_date).toLocaleDateString() : "-"}</td>
                 <td className="border px-2 py-1">{sub.end_date ? new Date(sub.end_date).toLocaleDateString() : "-"}</td>
               </tr>
