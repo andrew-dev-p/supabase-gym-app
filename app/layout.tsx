@@ -33,9 +33,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <header className="w-full border-b mb-4">
             <nav className="container flex items-center justify-between py-4">
               <div className="font-bold text-xl">Gym App</div>
@@ -54,7 +52,7 @@ export default function RootLayout({
               </div>
             </nav>
           </header>
-          {children}
+          <div>{children}</div>
         </body>
       </html>
     </ClerkProvider>

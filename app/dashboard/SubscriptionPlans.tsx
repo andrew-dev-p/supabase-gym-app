@@ -50,12 +50,8 @@ export default function SubscriptionPlans() {
       } else if (data.error) {
         setError(data.error);
       }
-    } catch (err: unknown) {
-      if (typeof err === "object" && err && "message" in err) {
-        setError((err as { message: string }).message);
-      } else {
-        setError("Failed to start checkout.");
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start checkout.");
     }
     setCheckoutLoading(false);
   };

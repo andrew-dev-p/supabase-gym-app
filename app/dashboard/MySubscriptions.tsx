@@ -39,12 +39,8 @@ export default function MySubscriptions() {
           )
         );
       }
-    } catch (err: unknown) {
-      if (typeof err === "object" && err && "message" in err) {
-        setError((err as { message: string }).message);
-      } else {
-        setError("Failed to cancel subscription.");
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to cancel subscription.");
     }
     setCancelLoading(null);
   };
@@ -65,45 +61,47 @@ export default function MySubscriptions() {
   }, [user]);
 
   if (!user) return null;
-  if (loading) return <div>Loading subscriptions...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
     <div className="mt-8">
       <h2 className="text-xl font-semibold mb-4">My Subscriptions</h2>
-      {subs.length === 0 ? (
-        <div>No subscriptions found.</div>
-      ) : (
-        <table className="min-w-full border">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Plan</th>
-              <th className="border px-2 py-1">Status</th>
-              <th className="border px-2 py-1">Start Date</th>
-              <th className="border px-2 py-1">End Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subs.map((sub) => (
-              <tr key={sub.id} className={sub.status === "active" ? "bg-green-50" : ""}>
-                <td className="border px-2 py-1">{sub.plan}</td>
-                <td className="border px-2 py-1 capitalize">{sub.status}
-                  {sub.status === "active" && (
-                    <button
-                      className="ml-2 text-xs text-red-600 underline"
-                      disabled={!!cancelLoading}
-                      onClick={() => handleCancel(sub.plan)}
-                    >
-                      {cancelLoading === sub.plan ? "Canceling..." : "Cancel"}
-                    </button>
-                  )}
-                </td>
-                <td className="border px-2 py-1">{sub.start_date ? new Date(sub.start_date).toLocaleDateString() : "-"}</td>
-                <td className="border px-2 py-1">{sub.end_date ? new Date(sub.end_date).toLocaleDateString() : "-"}</td>
+      {loading && <div>Loading subscriptions...</div>}
+      {error && <div className="text-red-500">Error: {error}</div>}
+      {!loading && !error && (
+        subs.length === 0 ? (
+          <div>No subscriptions found.</div>
+        ) : (
+          <table className="min-w-full border">
+            <thead>
+              <tr>
+                <th className="border px-2 py-1">Plan</th>
+                <th className="border px-2 py-1">Status</th>
+                <th className="border px-2 py-1">Start Date</th>
+                <th className="border px-2 py-1">End Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {subs.map((sub) => (
+                <tr key={sub.id} className={sub.status === "active" ? "bg-green-50" : ""}>
+                  <td className="border px-2 py-1">{sub.plan}</td>
+                  <td className="border px-2 py-1 capitalize">{sub.status}
+                    {sub.status === "active" && (
+                      <button
+                        className="ml-2 text-xs text-red-600 underline"
+                        disabled={!!cancelLoading}
+                        onClick={() => handleCancel(sub.plan)}
+                      >
+                        {cancelLoading === sub.plan ? "Canceling..." : "Cancel"}
+                      </button>
+                    )}
+                  </td>
+                  <td className="border px-2 py-1">{sub.start_date ? new Date(sub.start_date).toLocaleDateString() : "-"}</td>
+                  <td className="border px-2 py-1">{sub.end_date ? new Date(sub.end_date).toLocaleDateString() : "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
       )}
     </div>
   );

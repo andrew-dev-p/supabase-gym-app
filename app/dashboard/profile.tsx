@@ -58,18 +58,21 @@ export default function Profile() {
   };
 
   if (!user) return null;
-  if (loading) return <div>Loading profile...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
-  if (!profile) return <div>No profile found.</div>;
 
   return (
     <div>
       <div className="border rounded p-4 mt-6">
         <h2 className="text-xl font-semibold mb-2">Profile</h2>
-        <div><b>Name:</b> {profile.full_name || "-"}</div>
-        <div><b>Joined:</b> {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "-"}</div>
-        {profile.avatar_url && (
-          <img src={profile.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full mt-2" />
+        {loading && <div>Loading profile...</div>}
+        {error && <div className="text-red-500">Error: {error}</div>}
+        {!loading && !error && profile && (
+          <>
+            <div><b>Name:</b> {profile.full_name || "-"}</div>
+            <div><b>Joined:</b> {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "-"}</div>
+            {profile.avatar_url && (
+              <img src={profile.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full mt-2" />
+            )}
+          </>
         )}
       </div>
       <form onSubmit={handleUpdate} className="mt-4 space-y-2">
