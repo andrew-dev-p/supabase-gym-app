@@ -36,14 +36,23 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <header>
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+          <header className="w-full border-b mb-4">
+            <nav className="container flex items-center justify-between py-4">
+              <div className="font-bold text-xl">Gym App</div>
+              <div className="flex gap-2 items-center">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="btn btn-primary">Sign In</button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className="btn btn-secondary">Sign Up</button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </div>
+            </nav>
           </header>
           {children}
         </body>
