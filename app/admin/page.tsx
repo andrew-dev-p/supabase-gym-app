@@ -23,6 +23,36 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancelLoading, setCancelLoading] = useState<string | null>(null);
+  const [planFilter, setPlanFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
+
+  const totalSubs = subs.length;
+  const activeSubs = subs.filter((s) => s.status === "active").length;
+  const estimatedRevenue = subs
+    .filter((s) => s.status === "active")
+    .reduce((sum, s) => {
+      if (s.plan === "Monthly") return sum + 20;
+      if (s.plan === "Quarterly") return sum + 55;
+      if (s.plan === "Half-Yearly") return sum + 100;
+      if (s.plan === "Yearly") return sum + 180;
+      return sum;
+    }, 0);
+
+  const filteredSubs = subs.filter((sub) => {
+    if (planFilter && sub.plan !== planFilter) return false;
+    if (statusFilter && sub.status !== statusFilter) return false;
+    if (
+      search &&
+      !(
+        sub.user_id.includes(search) ||
+        (sub.profiles?.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (sub.profiles?.email || "").toLowerCase().includes(search.toLowerCase())
+      )
+    )
+      return false;
+    return true;
+  });
 
   const handleAdminCancel = async (userId: string, plan: string) => {
     setCancelLoading(userId + plan);
@@ -125,7 +155,50 @@ export default function AdminDashboard() {
   return (
     <div className="container py-8">
       <h1 className="text-2xl font-bold mb-6">Admin: All User Subscriptions</h1>
-      {subs.length === 0 ? (
+      <div className="mb-6 flex flex-wrap gap-6 items-end">
+        <div>
+          <div className="font-semibold">Total Subs</div>
+          <div>{totalSubs}</div>
+        </div>
+        <div>
+          <div className="font-semibold">Active Subs</div>
+          <div>{activeSubs}</div>
+        </div>
+        <div>
+          <div className="font-semibold">Est. Revenue</div>
+          <div>${estimatedRevenue}</div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium">Plan</label>
+          <select value={planFilter} onChange={e => setPlanFilter(e.target.value)} className="input input-bordered">
+            <option value="">All</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Half-Yearly">Half-Yearly</option>
+            <option value="Yearly">Yearly</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium">Status</label>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="input input-bordered">
+            <option value="">All</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="canceled">Canceled</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium">Search</label>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="input input-bordered"
+            placeholder="User ID, name, or email"
+          />
+        </div>
+      </div>
+      {filteredSubs.length === 0 ? (
         <div>No subscriptions found.</div>
       ) : (
         <table className="min-w-full border">
@@ -141,7 +214,7 @@ export default function AdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {subs.map((sub) => (
+            {filteredSubs.map((sub) => (
               <tr key={sub.id} className={sub.status === "active" ? "bg-green-50" : ""}>
                 <td className="border px-2 py-1 font-mono">{sub.user_id}</td>
                 <td className="border px-2 py-1">{sub.profiles?.full_name || "-"}</td>
