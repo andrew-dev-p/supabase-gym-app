@@ -5,6 +5,8 @@ import SubscriptionPlans from "./SubscriptionPlans";
 import MySubscriptions from "./MySubscriptions";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
@@ -19,20 +21,24 @@ export default function DashboardPage() {
   return (
     <div>
       {showMsg && (success || canceled) && (
-        <div className={`mb-4 p-3 rounded ${success ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-          {success && "Payment successful! Your subscription is now active."}
-          {canceled && "Payment canceled. No changes were made."}
-          <button className="ml-4 text-xs underline" onClick={() => setShowMsg(false)}>Dismiss</button>
-        </div>
+        <Alert variant={success ? "default" : "destructive"} className="mb-4">
+          <AlertDescription>
+            {success && "Payment successful! Your subscription is now active."}
+            {canceled && "Payment canceled. No changes were made."}
+            <button className="ml-4 text-xs underline" onClick={() => setShowMsg(false)}>Dismiss</button>
+          </AlertDescription>
+        </Alert>
       )}
       <SignedIn>
-        <main className="container py-8">
-          <h1 className="text-3xl font-bold mb-4">Welcome to your Dashboard!</h1>
-          <p className="mb-6">This page is protected and only visible to authenticated users.</p>
-          <Profile />
-          <SubscriptionPlans />
-          <MySubscriptions />
-        </main>
+        <Card className="container py-8">
+          <CardContent>
+            <h1 className="text-3xl font-bold mb-4">Welcome to your Dashboard!</h1>
+            <p className="mb-6">This page is protected and only visible to authenticated users.</p>
+            <Profile />
+            <SubscriptionPlans />
+            <MySubscriptions />
+          </CardContent>
+        </Card>
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />

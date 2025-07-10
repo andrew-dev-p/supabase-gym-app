@@ -1,6 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const PLANS = [
   { name: "Monthly", price: 20, duration: "1 month" },
@@ -57,25 +60,32 @@ export default function SubscriptionPlans() {
   };
 
   return (
-    <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">Choose a Subscription Plan</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {PLANS.map((plan) => (
-          <div
-            key={plan.name}
-            className={`border rounded p-4 cursor-pointer transition-all ${selected === plan.name ? "border-blue-500 bg-blue-50" : "hover:border-blue-300"}`}
-            onClick={() => !checkoutLoading && handleSelect(plan.name)}
-          >
-            <div className="text-lg font-bold">{plan.name}</div>
-            <div className="text-2xl font-semibold mb-2">${plan.price}</div>
-            <div className="text-gray-500">{plan.duration}</div>
-            {selected === plan.name && <div className="text-blue-600 mt-2">Selected</div>}
-          </div>
-        ))}
-      </div>
-      {checkoutLoading && <div className="text-blue-600 mt-4">Redirecting to payment...</div>}
-      {message && <div className="text-green-600 mt-4">{message}</div>}
-      {error && <div className="text-red-600 mt-4">{error}</div>}
-    </div>
+    <Card className="mt-8">
+      <CardContent>
+        <h2 className="text-xl font-semibold mb-4">Choose a Subscription Plan</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {PLANS.map((plan) => (
+            <Card key={plan.name} className={`cursor-pointer transition-all ${selected === plan.name ? "border-blue-500 bg-blue-50" : "hover:border-blue-300"}`}>
+              <CardContent className="p-4 flex flex-col items-start">
+                <div className="text-lg font-bold">{plan.name}</div>
+                <div className="text-2xl font-semibold mb-2">${plan.price}</div>
+                <div className="text-gray-500">{plan.duration}</div>
+                <Button
+                  className="mt-2"
+                  variant={selected === plan.name ? "default" : "outline"}
+                  disabled={checkoutLoading}
+                  onClick={() => handleSelect(plan.name)}
+                >
+                  {selected === plan.name ? "Selected" : "Select"}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {checkoutLoading && <div className="text-blue-600 mt-4">Redirecting to payment...</div>}
+        {message && <Alert variant="default" className="mt-4"><AlertDescription>{message}</AlertDescription></Alert>}
+        {error && <Alert variant="destructive" className="mt-4"><AlertDescription>{error}</AlertDescription></Alert>}
+      </CardContent>
+    </Card>
   );
 } 

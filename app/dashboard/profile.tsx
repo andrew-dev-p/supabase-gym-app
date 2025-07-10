@@ -2,6 +2,10 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabaseClient";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Profile = {
   full_name: string | null;
@@ -60,11 +64,20 @@ export default function Profile() {
   if (!user) return null;
 
   return (
-    <div>
-      <div className="border rounded p-4 mt-6">
+    <Card className="mt-6">
+      <CardContent>
         <h2 className="text-xl font-semibold mb-2">Profile</h2>
         {loading && <div>Loading profile...</div>}
-        {error && <div className="text-red-500">Error: {error}</div>}
+        {error && (
+          <Alert variant="destructive" className="mb-2">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {success && (
+          <Alert variant="default" className="mb-2">
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
         {!loading && !error && profile && (
           <>
             <div><b>Name:</b> {profile.full_name || "-"}</div>
@@ -74,31 +87,28 @@ export default function Profile() {
             )}
           </>
         )}
-      </div>
-      <form onSubmit={handleUpdate} className="mt-4 space-y-2">
-        <div>
-          <label className="block text-sm font-medium">Full Name</label>
-          <input
-            type="text"
-            value={editName}
-            onChange={e => setEditName(e.target.value)}
-            className="input input-bordered w-full"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Avatar URL</label>
-          <input
-            type="text"
-            value={editAvatar}
-            onChange={e => setEditAvatar(e.target.value)}
-            className="input input-bordered w-full"
-          />
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Saving..." : "Save Changes"}
-        </button>
-        {success && <div className="text-green-600">{success}</div>}
-      </form>
-    </div>
+        <form onSubmit={handleUpdate} className="mt-4 space-y-2">
+          <div>
+            <label className="block text-sm font-medium">Full Name</label>
+            <Input
+              type="text"
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Avatar URL</label>
+            <Input
+              type="text"
+              value={editAvatar}
+              onChange={e => setEditAvatar(e.target.value)}
+            />
+          </div>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 } 

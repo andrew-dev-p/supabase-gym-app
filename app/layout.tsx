@@ -9,6 +9,7 @@ import {
 } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Card } from "@/components/ui/card";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +53,9 @@ export default function RootLayout({
               </div>
             </nav>
           </header>
-          <div>{children}</div>
+          <Card className="min-h-screen rounded-none border-none shadow-none">
+            {children}
+          </Card>
         </body>
       </html>
     </ClerkProvider>
