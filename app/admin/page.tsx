@@ -103,6 +103,39 @@ export default function AdminDashboard() {
     setCancelLoading(null);
   };
 
+  function exportCSV() {
+    const headers = [
+      "User ID",
+      "Name",
+      "Email",
+      "Plan",
+      "Status",
+      "Start Date",
+      "End Date",
+    ];
+    const rows = filteredSubs.map((sub) => [
+      sub.user_id,
+      sub.profiles?.full_name || "",
+      sub.profiles?.email || "",
+      sub.plan,
+      sub.status,
+      sub.start_date ? new Date(sub.start_date).toLocaleDateString() : "",
+      sub.end_date ? new Date(sub.end_date).toLocaleDateString() : "",
+    ]);
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `subscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -167,6 +200,9 @@ export default function AdminDashboard() {
         <div>
           <div className="font-semibold">Est. Revenue</div>
           <div>${estimatedRevenue}</div>
+        </div>
+        <div>
+          <button onClick={exportCSV} className="btn btn-secondary mt-5">Export CSV</button>
         </div>
         <div>
           <label className="block text-xs font-medium">Plan</label>
