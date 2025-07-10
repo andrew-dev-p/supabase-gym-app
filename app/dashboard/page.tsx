@@ -1,6 +1,7 @@
 "use client";
 import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import Profile from "./profile";
+import SubscriptionPlans from "./SubscriptionPlans";
 
 export default function DashboardPage() {
   return (
@@ -11,6 +12,7 @@ export default function DashboardPage() {
           <p>This page is protected and only visible to authenticated users.</p>
         </main>
         <Profile />
+        <SubscriptionPlans />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
