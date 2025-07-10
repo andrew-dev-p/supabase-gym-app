@@ -10,6 +10,10 @@ interface Subscription {
   status: string;
   start_date: string | null;
   end_date: string | null;
+  profiles?: {
+    full_name: string | null;
+    email: string | null;
+  };
 }
 
 export default function AdminDashboard() {
@@ -37,11 +41,27 @@ export default function AdminDashboard() {
     setLoading(true);
     supabase
       .from("subscriptions")
-      .select("id, user_id, plan, status, start_date, end_date")
+      .select("id, user_id, plan, status, start_date, end_date, profiles(full_name, email)")
       .order("start_date", { ascending: false })
       .then(({ data, error }) => {
         if (error) setError(error.message);
-        else setSubs(data || []);
+        else {
+          const fixed: Subscription[] = (data || []).map((sub: unknown) => {
+            if (
+              typeof sub === "object" &&
+              sub !== null &&
+              "profiles" in sub &&
+              Array.isArray((sub as { profiles: unknown }).profiles)
+            ) {
+              return {
+                ...(sub as object),
+                profiles: (sub as { profiles: unknown[] }).profiles[0] as { full_name: string | null; email: string | null },
+              } as Subscription;
+            }
+            return sub as Subscription;
+          });
+          setSubs(fixed);
+        }
         setLoading(false);
       });
   }, [isAdmin]);
@@ -62,6 +82,8 @@ export default function AdminDashboard() {
           <thead>
             <tr>
               <th className="border px-2 py-1">User ID</th>
+              <th className="border px-2 py-1">Name</th>
+              <th className="border px-2 py-1">Email</th>
               <th className="border px-2 py-1">Plan</th>
               <th className="border px-2 py-1">Status</th>
               <th className="border px-2 py-1">Start Date</th>
@@ -72,6 +94,8 @@ export default function AdminDashboard() {
             {subs.map((sub) => (
               <tr key={sub.id} className={sub.status === "active" ? "bg-green-50" : ""}>
                 <td className="border px-2 py-1 font-mono">{sub.user_id}</td>
+                <td className="border px-2 py-1">{sub.profiles?.full_name || "-"}</td>
+                <td className="border px-2 py-1">{sub.profiles?.email || "-"}</td>
                 <td className="border px-2 py-1">{sub.plan}</td>
                 <td className="border px-2 py-1 capitalize">{sub.status}</td>
                 <td className="border px-2 py-1">{sub.start_date ? new Date(sub.start_date).toLocaleDateString() : "-"}</td>
