@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { supabase } from "@/lib/supabaseClient";
 
 const PLANS = [
   { name: "Monthly", price: 20, duration: "1 month" },
@@ -15,6 +14,7 @@ export default function SubscriptionPlans() {
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const handleSelect = async (planName: string) => {
     setSelected(planName);
@@ -24,25 +24,28 @@ export default function SubscriptionPlans() {
       setError("You must be signed in to subscribe.");
       return;
     }
-    const { data: existing, error: fetchError } = await supabase
-      .from("subscriptions")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("plan", planName)
-      .eq("status", "pending");
-    if (fetchError) {
-      setError(fetchError.message);
-      return;
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planName, userId: user.id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      } else if (data.error) {
+        setError(data.error);
+      }
+    } catch (err: unknown) {
+      if (typeof err === "object" && err && "message" in err) {
+        setError((err as { message: string }).message);
+      } else {
+        setError("Failed to start checkout.");
+      }
     }
-    if (existing && existing.length > 0) {
-      setMessage("You already have a pending subscription for this plan.");
-      return;
-    }
-    const { error: insertError } = await supabase
-      .from("subscriptions")
-      .insert({ user_id: user.id, plan: planName, status: "pending" });
-    if (insertError) setError(insertError.message);
-    else setMessage("Subscription request saved! Proceed to payment.");
+    setCheckoutLoading(false);
   };
 
   return (
@@ -53,7 +56,7 @@ export default function SubscriptionPlans() {
           <div
             key={plan.name}
             className={`border rounded p-4 cursor-pointer transition-all ${selected === plan.name ? "border-blue-500 bg-blue-50" : "hover:border-blue-300"}`}
-            onClick={() => handleSelect(plan.name)}
+            onClick={() => !checkoutLoading && handleSelect(plan.name)}
           >
             <div className="text-lg font-bold">{plan.name}</div>
             <div className="text-2xl font-semibold mb-2">${plan.price}</div>
@@ -62,6 +65,7 @@ export default function SubscriptionPlans() {
           </div>
         ))}
       </div>
+      {checkoutLoading && <div className="text-blue-600 mt-4">Redirecting to payment...</div>}
       {message && <div className="text-green-600 mt-4">{message}</div>}
       {error && <div className="text-red-600 mt-4">{error}</div>}
     </div>
