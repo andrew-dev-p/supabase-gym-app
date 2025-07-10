@@ -16,6 +16,38 @@ export default function MySubscriptions() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancelLoading, setCancelLoading] = useState<string | null>(null);
+
+  const handleCancel = async (plan: string) => {
+    if (!user) return;
+    setCancelLoading(plan);
+    setError(null);
+    try {
+      const res = await fetch("/api/cancel-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, plan }),
+      });
+      const data = await res.json();
+      if (data.error) setError(data.error);
+      else {
+        setSubs((subs) =>
+          subs.map((sub) =>
+            sub.plan === plan && sub.status === "active"
+              ? { ...sub, status: "canceled", end_date: new Date().toISOString() }
+              : sub
+          )
+        );
+      }
+    } catch (err: unknown) {
+      if (typeof err === "object" && err && "message" in err) {
+        setError((err as { message: string }).message);
+      } else {
+        setError("Failed to cancel subscription.");
+      }
+    }
+    setCancelLoading(null);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -55,7 +87,17 @@ export default function MySubscriptions() {
             {subs.map((sub) => (
               <tr key={sub.id} className={sub.status === "active" ? "bg-green-50" : ""}>
                 <td className="border px-2 py-1">{sub.plan}</td>
-                <td className="border px-2 py-1 capitalize">{sub.status}</td>
+                <td className="border px-2 py-1 capitalize">{sub.status}
+                  {sub.status === "active" && (
+                    <button
+                      className="ml-2 text-xs text-red-600 underline"
+                      disabled={!!cancelLoading}
+                      onClick={() => handleCancel(sub.plan)}
+                    >
+                      {cancelLoading === sub.plan ? "Canceling..." : "Cancel"}
+                    </button>
+                  )}
+                </td>
                 <td className="border px-2 py-1">{sub.start_date ? new Date(sub.start_date).toLocaleDateString() : "-"}</td>
                 <td className="border px-2 py-1">{sub.end_date ? new Date(sub.end_date).toLocaleDateString() : "-"}</td>
               </tr>
