@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useUser } from "@clerk/nextjs";
+import Charts from "./Charts";
 
 interface Subscription {
   id: string;
@@ -188,6 +189,7 @@ export default function AdminDashboard() {
   return (
     <div className="container py-8">
       <h1 className="text-2xl font-bold mb-6">Admin: All User Subscriptions</h1>
+      <Charts subs={subs} />
       <div className="mb-6 flex flex-wrap gap-6 items-end">
         <div>
           <div className="font-semibold">Total Subs</div>
