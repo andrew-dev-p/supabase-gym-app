@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useUser } from "@clerk/nextjs";
 
 interface Subscription {
   id: string;
@@ -12,11 +13,27 @@ interface Subscription {
 }
 
 export default function AdminDashboard() {
+  const { user } = useUser();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) setIsAdmin(false);
+        else setIsAdmin(data.role === "admin");
+      });
+  }, [user]);
+
+  useEffect(() => {
+    if (isAdmin !== true) return;
     setLoading(true);
     supabase
       .from("subscriptions")
@@ -27,7 +44,10 @@ export default function AdminDashboard() {
         else setSubs(data || []);
         setLoading(false);
       });
-  }, []);
+  }, [isAdmin]);
+
+  if (isAdmin === null) return <div>Checking admin access...</div>;
+  if (isAdmin === false) return <div className="text-red-500">Access denied. Admins only.</div>;
 
   if (loading) return <div>Loading all subscriptions...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
